@@ -1,5 +1,5 @@
 from app import db
-from models import Cart
+from models import Cart, CartItem
 
 
 class CartRepository:
@@ -11,3 +11,6 @@ class CartRepository:
         instead of racing it.
         """
         return db.session.query(Cart).filter_by(id=cart_id).with_for_update().first()
+
+    def get_items(self, cart_id):
+        return db.session.query(CartItem).filter_by(cart_id=cart_id).all()
