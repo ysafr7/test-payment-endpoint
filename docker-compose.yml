@@ -5,6 +5,7 @@ services:
       - "4000:5000"
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-postgres}
+      PAYMENT_CHARGE_MAX_ATTEMPTS: ${PAYMENT_CHARGE_MAX_ATTEMPTS:-3}
     depends_on:
       db:
         condition: service_healthy

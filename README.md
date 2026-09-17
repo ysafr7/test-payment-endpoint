@@ -19,6 +19,10 @@ App runs on `localhost:5000` (`uv run`) or `localhost:4000` (Docker).
 
 - `GET /health` — app liveness check
 
+## Configuration
+
+- `PAYMENT_CHARGE_MAX_ATTEMPTS` (default `3`) — how many times `PaymentService` retries a declined charge against the payment provider before recording the payment as `failed`.
+
 ## Database CLI
 
 Requires Postgres to be running — use Docker:

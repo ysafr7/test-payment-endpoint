@@ -161,6 +161,7 @@ def test_create_payment_declined_returns_402(
     assert body["failure_reason"] == "card declined"
     assert body["provider_reference"] is None
     assert cart.status == "active"
+    assert mock_charge.call_count == 3
 
 
 def test_create_payment_400_when_cart_id_missing(client):

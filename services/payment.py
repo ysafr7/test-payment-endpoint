@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass
 
 from app import db
@@ -7,6 +8,8 @@ from repositories.payment import PaymentRepository
 from repositories.user_payment_method import UserPaymentMethodRepository
 from mock_services.payment_provider import ChargeDeclined, charge
 from mock_services.payment_total import calculate_total
+
+MAX_CHARGE_ATTEMPTS = int(os.environ.get("PAYMENT_CHARGE_MAX_ATTEMPTS", "3"))
 
 
 class CartNotFound(Exception):
@@ -85,14 +88,19 @@ class PaymentService:
             currency=data.currency,
         )
 
-        try:
-            reference = charge(data.payment_method.provider_token, data.amount, data.currency)
-        except ChargeDeclined as exc:
-            self.payment_repo.update(payment, status="failed", failure_reason=str(exc))
+        last_error = None
+        for _attempt in range(MAX_CHARGE_ATTEMPTS):
+            try:
+                reference = charge(data.payment_method.provider_token, data.amount, data.currency)
+            except ChargeDeclined as exc:
+                last_error = exc
+                continue
+
+            self.payment_repo.update(payment, status="succeeded", provider_reference=reference)
+            cart.status = "checked_out"
             db.session.commit()
             return payment
 
-        self.payment_repo.update(payment, status="succeeded", provider_reference=reference)
-        cart.status = "checked_out"
+        self.payment_repo.update(payment, status="failed", failure_reason=str(last_error))
         db.session.commit()
         return payment
