@@ -1,0 +1,12 @@
+[project]
+name = "test-payment-endpoint"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Eugene Safronov", email = "ysafr7@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "flask>=3.1.0",
+]
