@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 import click
-from flask import Flask
+from flask import Flask, abort
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 
@@ -21,6 +21,48 @@ migrate = Migrate(app, db)
 @app.get("/health")
 def index():
     return {"status": "ok"}
+
+
+@app.get("/api/carts/<uuid:cart_id>/payment-preview")
+def payment_preview(cart_id):
+    """Build (without charging) the object a future payment would use."""
+    from repositories.cart import CartRepository
+    from services.payment import PaymentService
+
+    cart = CartRepository().get(cart_id)
+    if cart is None:
+        abort(404, description="cart not found")
+
+    data = PaymentService().build_payment_data(cart)
+
+    return {
+        "cart_id": str(cart.id),
+        "cart_status": cart.status,
+        "user": {
+            "id": str(data.user.id),
+            "email": data.user.email,
+            "name": data.user.name,
+        }
+        if data.user
+        else None,
+        "items": [
+            {
+                "cart_item_id": str(item.id),
+                "quantity": item.quantity,
+                "unit_price": str(item.unit_price),
+            }
+            for item in data.items
+        ],
+        "amount": str(data.amount),
+        "currency": data.currency,
+        "payment_method": {
+            "id": str(data.payment_method.id),
+            "last_four": data.payment_method.last_four,
+            "is_default": data.payment_method.is_default,
+        }
+        if data.payment_method
+        else None,
+    }
 
 
 def _apply_schema():

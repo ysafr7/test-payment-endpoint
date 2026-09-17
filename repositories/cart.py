@@ -3,6 +3,9 @@ from models import Cart, CartItem
 
 
 class CartRepository:
+    def get(self, cart_id):
+        return db.session.get(Cart, cart_id)
+
     def get_for_update(self, cart_id):
         """Fetch a cart with a row lock (SELECT ... FOR UPDATE).
 

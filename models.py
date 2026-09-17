@@ -8,6 +8,8 @@ class User(db.Model):
     __tablename__ = "users"
 
     id = db.Column(UUID(as_uuid=True), primary_key=True)
+    email = db.Column(db.Text, nullable=False)
+    name = db.Column(db.Text, nullable=False)
 
 
 class Cart(db.Model):
@@ -33,6 +35,7 @@ class UserPaymentMethod(db.Model):
     id = db.Column(UUID(as_uuid=True), primary_key=True)
     user_id = db.Column(UUID(as_uuid=True), db.ForeignKey("users.id"), nullable=False)
     provider_token = db.Column(db.Text, nullable=False)
+    last_four = db.Column(db.CHAR(4))
     is_default = db.Column(db.Boolean, nullable=False)
 
 
