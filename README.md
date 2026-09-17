@@ -18,6 +18,14 @@
 App runs on `localhost:5000` (`uv run`) or `localhost:4000` (Docker).
 
 - `GET /health` — app liveness check
+- `GET /api/carts/<uuid:cart_id>/payment-preview` — builds (without charging) the object a future payment for this cart would use: items, total, currency, user, and default payment method. 404 if the cart doesn't exist.
+- `POST /api/payments/process` — charges a cart's default payment method for its current total. Takes `{"cart_id": "<uuid>"}` in the JSON body. Retries a declined charge up to `PAYMENT_CHARGE_MAX_ATTEMPTS` times before giving up.
+  - `201` charge succeeded
+  - `402` charge declined after all retries
+  - `400` missing/malformed `cart_id`
+  - `404` cart not found
+  - `409` cart isn't `active` (already checked out or abandoned)
+  - `422` cart is empty, or the user has no default payment method
 
 ## Configuration
 
