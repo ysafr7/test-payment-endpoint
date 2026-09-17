@@ -97,7 +97,7 @@ class PaymentService:
                 continue
 
             self.payment_repo.update(payment, status="succeeded", provider_reference=reference)
-            cart.status = "checked_out"
+            self.cart_repo.mark_checked_out(cart)
             db.session.commit()
             return payment
 

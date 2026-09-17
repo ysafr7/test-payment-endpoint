@@ -17,3 +17,8 @@ class CartRepository:
 
     def get_items(self, cart_id):
         return db.session.query(CartItem).filter_by(cart_id=cart_id).all()
+
+    def mark_checked_out(self, cart):
+        cart.status = "checked_out"
+        db.session.flush()
+        return cart

@@ -62,3 +62,14 @@ def test_get_items_filters_by_cart_id(mock_db, repo):
     mock_db.session.query.assert_called_once_with(CartItem)
     query.filter_by.assert_called_once_with(cart_id="cart-1")
     assert result == ["item-a", "item-b"]
+
+
+@patch("repositories.cart.db")
+def test_mark_checked_out_sets_status_and_flushes(mock_db, repo):
+    cart = Cart(id="cart-1", user_id="user-1", status="active")
+
+    result = repo.mark_checked_out(cart)
+
+    assert cart.status == "checked_out"
+    mock_db.session.flush.assert_called_once()
+    assert result is cart
