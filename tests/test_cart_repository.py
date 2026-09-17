@@ -12,6 +12,25 @@ def repo():
 
 
 @patch("repositories.cart.db")
+def test_get_returns_cart_by_id(mock_db, repo):
+    mock_db.session.get.return_value = "a-cart"
+
+    result = repo.get("cart-1")
+
+    mock_db.session.get.assert_called_once_with(Cart, "cart-1")
+    assert result == "a-cart"
+
+
+@patch("repositories.cart.db")
+def test_get_returns_none_when_missing(mock_db, repo):
+    mock_db.session.get.return_value = None
+
+    result = repo.get("missing-id")
+
+    assert result is None
+
+
+@patch("repositories.cart.db")
 def test_get_for_update_locks_and_returns_cart(mock_db, repo):
     query = mock_db.session.query.return_value
     query.filter_by.return_value.with_for_update.return_value.first.return_value = "a-cart"
