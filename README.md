@@ -43,3 +43,7 @@ Revert the last migration:
 Create a new migration:
 
     docker compose exec app flask db revision -m "description"
+
+## Tests
+
+    uv run pytest
