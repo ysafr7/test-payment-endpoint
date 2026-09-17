@@ -2,7 +2,7 @@
 
 ## Demo
 
-<video src="docs/demo.mov" controls></video>
+[Watch the demo](docs/demo.mov)
 
 ## Install
 
