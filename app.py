@@ -1,10 +1,12 @@
 import os
+import uuid
 from pathlib import Path
 
 import click
-from flask import Flask, abort
+from flask import Flask, abort, request
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.exceptions import HTTPException
 
 DATABASE_URL = os.environ.get(
     "DATABASE_URL", "postgresql+psycopg://postgres:postgres@localhost:5432/postgres"
@@ -16,6 +18,11 @@ app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+
+
+@app.errorhandler(HTTPException)
+def handle_http_exception(exc):
+    return {"error": exc.description}, exc.code
 
 
 @app.get("/health")
@@ -63,6 +70,54 @@ def payment_preview(cart_id):
         if data.payment_method
         else None,
     }
+
+
+def _serialize_payment(payment):
+    return {
+        "id": str(payment.id),
+        "cart_id": str(payment.cart_id),
+        "user_id": str(payment.user_id),
+        "amount": str(payment.amount),
+        "currency": payment.currency,
+        "status": payment.status,
+        "provider_reference": payment.provider_reference,
+        "failure_reason": payment.failure_reason,
+    }
+
+
+@app.post("/api/payments/process")
+def create_payment():
+    """Charge a cart's default payment method for its current total."""
+    from services.payment import (
+        CartEmpty,
+        CartNotActive,
+        CartNotFound,
+        NoDefaultPaymentMethod,
+        PaymentService,
+    )
+
+    body = request.get_json(silent=True) or {}
+    cart_id_raw = body.get("cart_id")
+    if not cart_id_raw:
+        abort(400, description="cart_id is required")
+    try:
+        cart_id = uuid.UUID(cart_id_raw)
+    except (ValueError, AttributeError, TypeError):
+        abort(400, description="cart_id must be a valid UUID")
+
+    try:
+        payment = PaymentService().process_payment(cart_id)
+    except CartNotFound:
+        abort(404, description="cart not found")
+    except CartNotActive as exc:
+        abort(409, description=str(exc))
+    except CartEmpty:
+        abort(422, description="cart is empty")
+    except NoDefaultPaymentMethod:
+        abort(422, description="no default payment method")
+
+    status_code = 201 if payment.status == "succeeded" else 402
+    return _serialize_payment(payment), status_code
 
 
 def _apply_schema():
