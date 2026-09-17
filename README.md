@@ -1,5 +1,9 @@
 # test-payment-endpoint
 
+## Demo
+
+<video src="docs/demo.mov" controls></video>
+
 ## Install
 
     uv sync
