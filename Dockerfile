@@ -9,6 +9,7 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 COPY app.py ./
 COPY db/ ./db/
+COPY migrations/ ./migrations/
 
 EXPOSE 5000
 

@@ -27,3 +27,19 @@ Requires Postgres to be running — use Docker:
 
 - `docker compose exec app flask --app app db-setup` — applies `schema.sql` to an empty database (tables + sample data).
 - `docker compose exec app flask --app app db-reset` — drops and recreates the `public` schema, then applies `schema.sql`.
+
+## Migrations
+
+`db/schema.sql` (via `db-setup`/`db-reset` above) provides the base tables. Everything built on top of it (e.g. `payments`) is a Flask-Migrate (Alembic) migration in `migrations/versions/`.
+
+Apply migrations:
+
+    docker compose exec app flask db upgrade
+
+Revert the last migration:
+
+    docker compose exec app flask db downgrade -1
+
+Create a new migration:
+
+    docker compose exec app flask db revision -m "description"
